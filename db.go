@@ -82,7 +82,7 @@ func cleanStatement(stm string) string {
 // ideas are taken from
 // http://stackoverflow.com/questions/17845619/how-to-call-the-scan-variadic-function-in-golang-using-reflection
 //gocyclo:ignore
-func execute(stm string, args ...interface{}) error {
+func execute(stm string, args ...any) error {
 	stm = cleanStatement(stm)
 
 	// execute transaction
@@ -158,6 +158,21 @@ func execute(stm string, args ...interface{}) error {
 	return nil
 }
 
+// helper function to print DB record
 func printRecord(rec Record) {
-	fmt.Println("###", rec)
+	fmt.Println("")
+	var maxKeyLength int
+	for key, _ := range rec {
+		if len(key) > maxKeyLength {
+			maxKeyLength = len(key)
+		}
+	}
+	for key, val := range rec {
+		//         pad := maxKeyLength - len(key)
+		var pad string
+		for i := 0; i < maxKeyLength-len(key); i++ {
+			pad += " "
+		}
+		fmt.Printf("%s%s: %v\n", key, pad, val)
+	}
 }
