@@ -71,6 +71,7 @@ func keysHandler(ch chan<- string) {
 				cmd = strings.Split(history[hpos-1], "")
 				fmt.Printf(PROMPT + strings.Join(cmd, ""))
 				hpos -= 1
+				pos = len(cmd)
 			}
 		case keys.Down:
 			if len(history) > 0 && hpos < len(history) {
@@ -109,8 +110,10 @@ func keysHandler(ch chan<- string) {
 				fmt.Println(strings.Join(history, "\n"))
 			} else if dbStatement(command) {
 				stm, args := parseDBStatement(command)
-				out := execute(stm, args...)
-				fmt.Println(out)
+				err := execute(stm, args...)
+				if err != nil {
+					log.Println("db error:", err)
+				}
 				ch <- "" // send empty command
 			} else if len(command) == 0 {
 				// pass
@@ -123,7 +126,7 @@ func keysHandler(ch chan<- string) {
 		return false, nil
 	})
 	if err != nil {
-		log.Println("fail on keyboard listen", err)
+		log.Println("\nkeyboard listener failure, error:", err)
 	}
 }
 
