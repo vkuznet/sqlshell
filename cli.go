@@ -28,6 +28,9 @@ import (
 // PROMPT represents shell prompt
 var PROMPT = "> "
 
+// DBFORMAT defines how to print DB records, e.g. columns or rows
+var DBFORMAT string
+
 // helper function to handle keyboard input
 func keysHandler(ch chan<- string) {
 
@@ -108,6 +111,13 @@ func keysHandler(ch chan<- string) {
 			cmd = []string{}
 			if command == "history" {
 				fmt.Println(strings.Join(history, "\n"))
+			} else if strings.HasPrefix(command, "dbformat=") {
+				arr := strings.Split(command, "=")
+				if len(arr) == 2 {
+					DBFORMAT = strings.Trim(arr[1], " ")
+				}
+				fmt.Println("\nset DB format to", DBFORMAT)
+				ch <- "" // send empty command
 			} else if dbStatement(command) {
 				stm, args := parseDBStatement(command)
 				err := execute(stm, args...)
