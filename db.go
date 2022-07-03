@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-oci8"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -161,19 +162,30 @@ func execute(stm string, args ...any) error {
 
 // helper function to print DB record
 func printRecord(rec Record) {
-	fmt.Println("")
 	var maxKeyLength int
+	var keys []string
 	for key, _ := range rec {
 		if len(key) > maxKeyLength {
 			maxKeyLength = len(key)
 		}
+		keys = append(keys, key)
 	}
-	for key, val := range rec {
-		//         pad := maxKeyLength - len(key)
-		var pad string
-		for i := 0; i < maxKeyLength-len(key); i++ {
-			pad += " "
+	fmt.Println("")
+	if DBFORMAT == "" || DBFORMAT == "cols" {
+		for _, key := range keys {
+			val, _ := rec[key]
+			var pad string
+			for i := 0; i < maxKeyLength-len(key); i++ {
+				pad += " "
+			}
+			fmt.Printf("%s%s: %v\n", key, pad, val)
 		}
-		fmt.Printf("%s%s: %v\n", key, pad, val)
+		return
 	}
+	var vals []string
+	for _, key := range keys {
+		val, _ := rec[key]
+		vals = append(vals, fmt.Sprintf("%v", val))
+	}
+	fmt.Println(strings.Join(vals, "\t"))
 }
