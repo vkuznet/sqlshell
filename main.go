@@ -24,6 +24,11 @@ func info() string {
 }
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Println("usage: sqlshell <dbtype://dburi>")
+		fmt.Println("supported dbtypes: sqlite, mysql, postgres, oracle")
+		os.Exit(1)
+	}
 	// initialize our DB connection
 	dburi := strings.Join(os.Args[1:], "")
 	db, dberr := dbInit(dburi)
