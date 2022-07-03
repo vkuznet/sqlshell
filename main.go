@@ -6,9 +6,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -24,14 +26,30 @@ func info() string {
 }
 
 func main() {
+	// initialize our DB connection
+	dburi := strings.Join(os.Args[1:], "")
+	db, dberr := dbInit(dburi)
+	if dberr != nil {
+		log.Fatal(dberr)
+	}
+	DB = db
+	defer DB.Close()
+
+	// set logger flags
+	log.SetFlags(0)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	// setup communication channels
 	ch := make(chan string)
 	cmdDone := make(chan bool)
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
+	// run keyboard and command handlers to manage the shell
 	go cmdHandler(ch, cmdDone)
 	go keysHandler(ch)
 
+	// shutdown our handlers
 	<-done
 	cmdDone <- true
 }

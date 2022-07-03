@@ -14,11 +14,13 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"strings"
+
+	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/mattn/go-oci8"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 // DB represents sql DB pointer
@@ -37,10 +39,21 @@ var DBSQL Record
 var DBOWNER string
 
 // helper function to initialize DB access
-func dbInit(dbtype, dburi string) (*sql.DB, error) {
-	db, dberr := sql.Open(dbtype, dburi)
+func dbInit(dburi string) (*sql.DB, error) {
+	if strings.HasPrefix(dburi, "sqlite") {
+		DBTYPE = "sqlite3"
+		dburi = strings.Replace(dburi, "sqlite://", "", -1)
+		dburi = strings.Replace(dburi, "sqlite3://", "", -1)
+	} else if strings.HasPrefix(dburi, "mysql") {
+		DBTYPE = "mysql"
+	} else if strings.HasPrefix(dburi, "postgres") {
+		DBTYPE = "postgres"
+	} else {
+		DBTYPE = "oci8"
+	}
+	db, dberr := sql.Open(DBTYPE, dburi)
 	if dberr != nil {
-		log.Printf("unable to open %s, error %v", dbtype, dburi)
+		log.Printf("unable to open %s, error %v", DBTYPE, dburi)
 		return nil, dberr
 	}
 	dberr = db.Ping()
@@ -69,13 +82,8 @@ func cleanStatement(stm string) string {
 // ideas are taken from
 // http://stackoverflow.com/questions/17845619/how-to-call-the-scan-variadic-function-in-golang-using-reflection
 //gocyclo:ignore
-func execute(w io.Writer, sep, stm string, args ...interface{}) error {
+func execute(stm string, args ...interface{}) error {
 	stm = cleanStatement(stm)
-
-	var enc *json.Encoder
-	if w != nil {
-		enc = json.NewEncoder(w)
-	}
 
 	// execute transaction
 	tx, err := DB.Begin()
@@ -98,7 +106,6 @@ func execute(w io.Writer, sep, stm string, args ...interface{}) error {
 	values := make([]interface{}, count)
 	valuePtrs := make([]interface{}, count)
 	rowCount := 0
-	writtenResults := false
 	for rows.Next() {
 		if rowCount == 0 {
 			// initialize value pointers
@@ -109,10 +116,6 @@ func execute(w io.Writer, sep, stm string, args ...interface{}) error {
 		err := rows.Scan(valuePtrs...)
 		if err != nil {
 			return Error(err, RowsScanErrorCode, "", "dbs.executeAll")
-		}
-		if rowCount != 0 && w != nil {
-			// add separator line to our output
-			w.Write([]byte(sep))
 		}
 		// store results into generic record (a dict)
 		rec := make(Record)
@@ -146,27 +149,15 @@ func execute(w io.Writer, sep, stm string, args ...interface{}) error {
 				rec[cols[i]] = val
 			}
 		}
-		if w != nil {
-			if rowCount == 0 {
-				if sep != "" {
-					writtenResults = true
-					w.Write([]byte("[\n"))
-					defer w.Write([]byte("]\n"))
-				}
-			}
-			err = enc.Encode(rec)
-			if err != nil {
-				return Error(err, EncodeErrorCode, "", "dbs.executeAll")
-			}
-		}
+		printRecord(rec)
 		rowCount += 1
 	}
 	if err = rows.Err(); err != nil {
 		return Error(err, RowsScanErrorCode, "", "dbs.executeAll")
 	}
-	// make sure we write proper response if no result written
-	if sep != "" && !writtenResults {
-		w.Write([]byte("[]"))
-	}
 	return nil
+}
+
+func printRecord(rec Record) {
+	fmt.Println("###", rec)
 }
