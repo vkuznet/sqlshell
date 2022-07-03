@@ -7,6 +7,9 @@ package main
 // to fix "for sys error like go:linkname must refer to declared function or variable" do the following
 // go get -u golang.org/x/sys
 // https://stackoverflow.com/questions/71507321/go-1-18-build-error-on-mac-unix-syscall-darwin-1-13-go253-golinkname-mus
+// ASCII codes: https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797
+// keyboard handling: https://github.com/atomicgo/keyboard
+// cursor handling: https://github.com/atomicgo/cursor
 
 import (
 	"errors"
@@ -21,9 +24,6 @@ import (
 	"atomicgo.dev/keyboard"
 	"atomicgo.dev/keyboard/keys"
 )
-
-// ErrNoPath is returned when 'cd' was called without a second argument.
-var ErrNoPath = errors.New("path required")
 
 // PROMPT represents shell prompt
 var PROMPT = "> "
@@ -190,7 +190,7 @@ func execInput(input string) error {
 	case "cd":
 		// 'cd' to home with empty path not yet supported.
 		if len(args) < 2 {
-			return ErrNoPath
+			return errors.New("path required")
 		}
 		// Change the directory and return the error.
 		return os.Chdir(args[1])
