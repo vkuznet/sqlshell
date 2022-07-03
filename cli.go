@@ -80,6 +80,10 @@ func keysHandler(ch chan<- string) {
 				fmt.Printf(PROMPT + strings.Join(cmd, ""))
 				hpos += 1
 			}
+		case keys.Space:
+			cursor.Right(1)
+			cmd = append(cmd, " ")
+			pos += 1
 		case keys.Backspace:
 			if pos > 0 {
 				pos -= 1
@@ -95,7 +99,7 @@ func keysHandler(ch chan<- string) {
 		case keys.CtrlE:
 			cursor.Right(len(cmd) - pos)
 			pos = len(cmd)
-		case keys.CtrlC, keys.Escape:
+		case keys.CtrlC, keys.CtrlQ, keys.CtrlX, keys.CtrlZ:
 			return true, nil
 		case keys.Enter:
 			command := strings.Join(cmd, "")
@@ -103,6 +107,13 @@ func keysHandler(ch chan<- string) {
 			cmd = []string{}
 			if command == "history" {
 				fmt.Println(strings.Join(history, "\n"))
+			} else if dbStatement(command) {
+				stm, args := parseDBStatement(command)
+				out := execute(stm, args...)
+				fmt.Println(out)
+				ch <- "" // send empty command
+			} else if len(command) == 0 {
+				// pass
 			} else {
 				ch <- command
 			}
@@ -114,7 +125,24 @@ func keysHandler(ch chan<- string) {
 	if err != nil {
 		log.Println("fail on keyboard listen", err)
 	}
+}
 
+// helper function to parse DB statement
+func parseDBStatement(cmd string) (string, []any) {
+	var args []any
+	return cmd, args
+}
+
+// helper function to match DB statement
+func dbStatement(cmd string) bool {
+	cmd = strings.ToLower(cmd)
+	if strings.HasPrefix(cmd, "select") ||
+		strings.HasPrefix(cmd, "insert") ||
+		strings.HasPrefix(cmd, "update") ||
+		strings.HasPrefix(cmd, "delete") {
+		return true
+	}
+	return false
 }
 
 // helper function to handle commands
@@ -128,8 +156,10 @@ func cmdHandler(ch <-chan string, done <-chan bool) {
 		case input := <-ch:
 			fmt.Println("")
 			// Handle the execution of the input.
-			if err := execInput(input); err != nil {
-				fmt.Fprintln(os.Stderr, err)
+			if len(input) != 0 {
+				if err := execInput(input); err != nil {
+					fmt.Fprintln(os.Stderr, err)
+				}
 			}
 			fmt.Printf(PROMPT)
 		default:
