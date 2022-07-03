@@ -8,10 +8,8 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
 	"runtime"
 	"strings"
-	"syscall"
 	"time"
 )
 
@@ -41,15 +39,12 @@ func main() {
 
 	// setup communication channels
 	ch := make(chan string)
-	cmdDone := make(chan bool)
-	done := make(chan os.Signal, 1)
-	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	done := make(chan bool)
 
 	// run keyboard and command handlers to manage the shell
-	go cmdHandler(ch, cmdDone)
-	go keysHandler(ch)
+	go cmdHandler(ch, done)
+	keysHandler(ch)
 
-	// shutdown our handlers
-	<-done
-	cmdDone <- true
+	// shutdown our command handler
+	done <- true
 }
