@@ -88,14 +88,15 @@ func execute(stm string, args ...any) error {
 	// execute transaction
 	tx, err := DB.Begin()
 	if err != nil {
-		return Error(err, TransactionErrorCode, "", "dbs.executeAll")
+		return Error(err, TransactionErrorCode, "", "execute")
 	}
 	defer tx.Rollback()
 	rows, err := tx.Query(stm, args...)
 	if err != nil {
 		msg := fmt.Sprintf("unable to query statement: %v", stm)
+		fmt.Println()
 		log.Println(msg)
-		return Error(err, QueryErrorCode, "", "dbs.executeAll")
+		return Error(err, QueryErrorCode, "", "execute")
 	}
 	defer rows.Close()
 
@@ -115,7 +116,7 @@ func execute(stm string, args ...any) error {
 		}
 		err := rows.Scan(valuePtrs...)
 		if err != nil {
-			return Error(err, RowsScanErrorCode, "", "dbs.executeAll")
+			return Error(err, RowsScanErrorCode, "", "execute")
 		}
 		// store results into generic record (a dict)
 		rec := make(Record)
@@ -153,7 +154,7 @@ func execute(stm string, args ...any) error {
 		rowCount += 1
 	}
 	if err = rows.Err(); err != nil {
-		return Error(err, RowsScanErrorCode, "", "dbs.executeAll")
+		return Error(err, RowsScanErrorCode, "", "execute")
 	}
 	return nil
 }
