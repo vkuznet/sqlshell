@@ -1,6 +1,10 @@
 # sqlshell
 `sqlshell` a (better) replacement of database (DB) shell(s)
 
+[![Build](https://github.com/vkuznet/sqlshell/actions/workflows/build.yml/badge.svg)](https://github.com/vkuznet/sqlshell/actions/workflows/build.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/vkuznet/sqlshell)](https://goreportcard.com/report/github.com/dmwm/dbs2go)
+[![GoDoc](https://godoc.org/github.com/vkuznet/sqlshell?status.svg)](https://godoc.org/github.com/dmwm/dbs2go)
+
 ### Introduction
 Each database has its own Command Line (CLI) tool, e.g. `sqlite3` for SQLite
 database, `sqlplus` for ORACLE one. All of these tools have
