@@ -195,8 +195,7 @@ func printRecord(rec Record, rowCount int) {
 	}
 	// initialize tabwriter
 	w := new(tabwriter.Writer)
-	// minwidth, tabwidth, padding, padchar, flags
-	w.Init(os.Stdout, 4, 16, 0, '\t', 0)
+	w.Init(os.Stdout, MinWidth, TabWidth, Padding, '\t', 0)
 	defer w.Flush()
 
 	// print column names if necessary
