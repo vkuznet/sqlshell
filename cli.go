@@ -98,11 +98,21 @@ func keysHandler(ch chan<- string) {
 			pos += 1
 		case keys.Backspace:
 			if pos > 0 {
+				front := cmd[:pos-1]
+				var rest []string
+				if pos < len(cmd) {
+					rest = cmd[pos:]
+				}
 				pos -= 1
 				cursor.StartOfLine()
 				cursor.ClearLine()
-				cmd = cmd[:len(cmd)-1]
+				cmd = front
+				cmd = append(cmd, rest...)
+				//                 cmd = cmd[:len(cmd)-1]
 				fmt.Printf(PROMPT + strings.Join(cmd, ""))
+				if len(rest) > 0 {
+					cursor.Left(len(rest))
+				}
 			}
 		case keys.CtrlA:
 			cursor.StartOfLine()
