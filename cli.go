@@ -29,6 +29,9 @@ import (
 // PROMPT represents shell prompt
 var PROMPT = "> "
 
+// HIST_LIMIT defines number of line we write to history file
+var HIST_LIMIT = 10
+
 // DBFORMAT defines how to print DB records, e.g. columns or rows
 var DBFORMAT string
 
@@ -175,16 +178,28 @@ func keysHandler(ch chan<- string) {
 
 // helper function show usage
 func showUsage() {
-	fmt.Println("sqlshell commands:")
-	fmt.Println("help     - this message")
-	fmt.Println("history  - show history of used commands")
-	fmt.Println("           use !<number> to execute specific command from the history")
-	fmt.Println("dbformat - set output database format")
-	fmt.Println("           supported formats: json,pairs,rows or rows:minwidth:tabwidth:padding:padchar")
-	fmt.Println("           pairs format will show key:value pairs of single DB row (default)")
-	fmt.Println("           rows format will show record values as single DB row")
-	fmt.Println("           json format will show DB record in JSON format")
-	fmt.Println("           example : dbformat=rows:4:16:0")
+	fmt.Println("sqlshell  commands:")
+	fmt.Println("help      show this message")
+	fmt.Println("history   set or show history of used commands")
+	fmt.Println("!<number> execute specific command from the history")
+	fmt.Println("set <cmd> perform set command")
+	fmt.Println("          supported commands: format, connect, index, pager, limit, history")
+	fmt.Println("set format=...    set output database format")
+	fmt.Println("                  formats: json,pairs,rows or rows:minwidth:tabwidth:padding:padchar")
+	fmt.Println("                  pairs format will show key:value pairs of single DB row (default)")
+	fmt.Println("                  rows format will show record values as single DB row")
+	fmt.Println("                  json format will show DB record in JSON format")
+	fmt.Println("                  example: set format=rows:4:16:0")
+	fmt.Println("set connect=dburi connects to provided DB uri")
+	fmt.Println("                  example: set connect=sqlite:///tmp/file.db")
+	fmt.Println("set history=N     limits history to N lines")
+	fmt.Println("                  example: set history=1000")
+	fmt.Println("set index=N       starting index from DB output")
+	fmt.Println("                  example: set index=5")
+	fmt.Println("set limit=N       limit cut-off from DB output")
+	fmt.Println("                  example: set limit=10")
+	fmt.Println("set pager=N       shows N records per output")
+	fmt.Println("                  example: set pager=2")
 }
 
 // helper function to parse DB statement
@@ -296,28 +311,12 @@ func execInput(command string) error {
 		return nil
 	}
 
-	// check dbformat command
-	if strings.HasPrefix(command, "dbformat") {
-		arr := strings.Split(command, "=")
-		if len(arr) == 2 {
-			setDBFormat(arr[1])
-			fmt.Println("set DB format to", DBFORMAT)
-		} else {
-			fmt.Println("dbformat: json,cols,rows or rows:minwidth:tabwidth:padding:padchar")
-			fmt.Println("Example : dbformat=rows:4:16:0")
-		}
+	// check set command
+	if strings.HasPrefix(command, "set") {
+		setCommand(command)
 		return nil
 	}
 
-	// check dbconnect command
-	if strings.HasPrefix(command, "dbconnect") {
-		arr := strings.Split(command, "=")
-		if len(arr) == 2 {
-			dburi := strings.Trim(arr[1], " ")
-			dbConnect(dburi)
-		}
-		return nil
-	}
 	// Remove the newline character.
 	command = strings.TrimSuffix(command, "\n")
 
@@ -346,4 +345,90 @@ func execInput(command string) error {
 
 	// Execute the command and return the error.
 	return cmd.Run()
+}
+
+// helper set command function
+/*
+  set dbformat=bla
+  set history=1000
+  set index=1
+  set limit=100
+  set dbconnection=sqlite:///tmp/files.db
+*/
+func setCommand(input string) {
+	arr := strings.Split(input, "set ")
+	command := strings.Join(arr[1:], "")
+
+	// format command
+	if strings.HasPrefix(command, "format") {
+		arr := strings.Split(command, "=")
+		if len(arr) == 2 {
+			setDBFormat(arr[1])
+			fmt.Println("set DB format to", DBFORMAT)
+		} else {
+			fmt.Println("format  : json,cols,rows or rows:minwidth:tabwidth:padding:padchar")
+			fmt.Println("example : dbformat=rows:4:16:0")
+		}
+		return
+	}
+
+	// connect command
+	if strings.HasPrefix(command, "connect") {
+		arr := strings.Split(command, "=")
+		if len(arr) == 2 {
+			dburi := strings.Trim(arr[1], " ")
+			dbConnect(dburi)
+		} else {
+			fmt.Println("connect to provide DB uri, e.g. set connect sqlite:///path/file.db")
+		}
+		return
+	}
+
+	// history command
+	if strings.HasPrefix(command, "history") {
+		arr := strings.Split(command, "=")
+		if len(arr) == 2 {
+			s := strings.Trim(arr[1], " ")
+			v, err := strconv.Atoi(s)
+			if err == nil {
+				HIST_LIMIT = v
+			}
+		} else {
+			fmt.Println("set history=N, where N is number of records to keep")
+		}
+		return
+	}
+
+	// index command
+	if strings.HasPrefix(command, "index") {
+		arr := strings.Split(command, "=")
+		if len(arr) == 2 {
+			fmt.Println("Not implemented yet")
+		} else {
+			fmt.Println("set index=N, where N is first record from DB output to print")
+		}
+		return
+	}
+
+	// limit command
+	if strings.HasPrefix(command, "limit") {
+		arr := strings.Split(command, "=")
+		if len(arr) == 2 {
+			fmt.Println("Not implemented yet")
+		} else {
+			fmt.Println("set limit=N, where N is last record from DB output to print")
+		}
+		return
+	}
+
+	// pager command
+	if strings.HasPrefix(command, "pager") {
+		arr := strings.Split(command, "=")
+		if len(arr) == 2 {
+			fmt.Println("Not implemented yet")
+		} else {
+			fmt.Println("set pager=N, where N is number of records to dump from DB output")
+		}
+		return
+	}
 }
