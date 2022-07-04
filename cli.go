@@ -33,14 +33,17 @@ var DBFORMAT string
 
 // helper function to handle keyboard input
 func keysHandler(ch chan<- string) {
-
 	var pos, hpos int
-	var keyList []keys.Key
-	var cmd, history []string
+	var cmd []string
+	history := ReadHistory()
+	if len(history) > 0 {
+		hpos = len(history)
+	}
+
 	// start detecting user input command
 	fmt.Printf(PROMPT)
 	err := keyboard.Listen(func(key keys.Key) (stop bool, err error) {
-		keyList = append(keyList, key)
+
 		switch key.Code {
 		case keys.RuneKey:
 			insert := false
@@ -68,21 +71,26 @@ func keysHandler(ch chan<- string) {
 				pos += 1
 			}
 		case keys.Up:
-			if len(history) > 0 && hpos > 0 {
-				cursor.StartOfLine()
-				cursor.ClearLine()
-				cmd = strings.Split(history[hpos-1], "")
-				fmt.Printf(PROMPT + strings.Join(cmd, ""))
+			if hpos > 0 {
 				hpos -= 1
-				pos = len(cmd)
 			}
-		case keys.Down:
 			if len(history) > 0 && hpos < len(history) {
 				cursor.StartOfLine()
 				cursor.ClearLine()
-				cmd = strings.Split(history[hpos-1], "")
+				cmd = strings.Split(history[hpos], "")
 				fmt.Printf(PROMPT + strings.Join(cmd, ""))
+				pos = len(cmd)
+			}
+		case keys.Down:
+			if hpos < len(history) {
 				hpos += 1
+			}
+			if len(history) > 0 && hpos < len(history) {
+				cursor.StartOfLine()
+				cursor.ClearLine()
+				cmd = strings.Split(history[hpos], "")
+				fmt.Printf(PROMPT + strings.Join(cmd, ""))
+				pos = len(cmd)
 			}
 		case keys.Space:
 			cursor.Right(1)
@@ -104,13 +112,16 @@ func keysHandler(ch chan<- string) {
 			cursor.Right(len(cmd) - pos)
 			pos = len(cmd)
 		case keys.CtrlC, keys.CtrlQ, keys.CtrlX, keys.CtrlZ:
+			FlushHistory(history)
 			return true, nil
 		case keys.Enter:
 			command := strings.Join(cmd, "")
 			history = append(history, command)
+			hpos = len(history) - 1
 			cmd = []string{}
 			if command == "history" {
-				fmt.Println(strings.Join(history, "\n"))
+				fmt.Println("\n" + strings.Join(history, "\n"))
+				ch <- "" // send empty command
 			} else if strings.HasPrefix(command, "dbformat=") {
 				arr := strings.Split(command, "=")
 				if len(arr) == 2 {
@@ -128,6 +139,9 @@ func keysHandler(ch chan<- string) {
 			} else if len(command) == 0 {
 				// pass
 			} else {
+				if command == "exit" {
+					FlushHistory(history)
+				}
 				ch <- command
 			}
 			pos = 0
