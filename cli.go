@@ -17,6 +17,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -30,6 +31,15 @@ var PROMPT = "> "
 
 // DBFORMAT defines how to print DB records, e.g. columns or rows
 var DBFORMAT string
+
+// MinWidth used by tabwriter
+var MinWidth int = 4
+
+// TabWidth used by tabwriter
+var TabWidth int = 16
+
+// Padding used by tabwriter
+var Padding int = 0
 
 // helper function to handle keyboard input
 func keysHandler(ch chan<- string) {
@@ -132,13 +142,22 @@ func keysHandler(ch chan<- string) {
 			if command == "history" {
 				fmt.Println("\n" + strings.Join(history, "\n"))
 				ch <- "" // send empty command
-			} else if strings.HasPrefix(command, "dbformat=") {
+			} else if strings.HasPrefix(command, "dbformat") {
 				arr := strings.Split(command, "=")
 				if len(arr) == 2 {
-					DBFORMAT = strings.Trim(arr[1], " ")
+					setDBFormat(arr[1])
+					fmt.Println("\nset DB format to", DBFORMAT)
+				} else {
+					fmt.Println("\ndbformat: json,cols,rows or rows:minwidth:tabwidth:padding:padchar")
+					fmt.Println("\nExample : dbformat=rows:4:16:0")
 				}
-				fmt.Println("\nset DB format to", DBFORMAT)
 				ch <- "" // send empty command
+			} else if strings.HasPrefix(command, "dbconnect") {
+				arr := strings.Split(command, "=")
+				if len(arr) == 2 {
+					dburi := strings.Trim(arr[1], " ")
+					dbConnect(dburi)
+				}
 			} else if dbStatement(command) {
 				stm, args := parseDBStatement(command)
 				err := execute(stm, args...)
@@ -170,12 +189,49 @@ func parseDBStatement(cmd string) (string, []any) {
 	return cmd, args
 }
 
+// helper function to connect to DB
+func dbConnect(dburi string) {
+	db, dberr := dbInit(dburi)
+	if dberr != nil {
+		log.Fatal(dberr)
+	}
+	DB = db
+}
+
+// helper function to set DB format
+func setDBFormat(format string) {
+	arr := strings.Split(format, ":")
+	if len(arr) > 1 {
+		DBFORMAT = strings.Trim(arr[0], " ")
+		if len(arr) > 1 {
+			if v, e := strconv.Atoi(arr[1]); e == nil {
+				MinWidth = v
+			}
+		}
+		if len(arr) > 2 {
+			if v, e := strconv.Atoi(arr[2]); e == nil {
+				TabWidth = v
+			}
+		}
+		if len(arr) > 3 {
+			if v, e := strconv.Atoi(arr[3]); e == nil {
+				Padding = v
+			}
+		}
+	} else {
+		DBFORMAT = strings.Trim(format, " ")
+	}
+}
+
 // helper function to match DB statement
 func dbStatement(cmd string) bool {
 	cmd = strings.ToLower(cmd)
 	if strings.HasPrefix(cmd, "select") ||
 		strings.HasPrefix(cmd, "insert") ||
 		strings.HasPrefix(cmd, "update") ||
+		strings.HasPrefix(cmd, "begin") ||
+		strings.HasPrefix(cmd, "rollback") ||
+		strings.HasPrefix(cmd, "commit") ||
 		strings.HasPrefix(cmd, "delete") {
 		return true
 	}
