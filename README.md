@@ -1,28 +1,40 @@
 # sqlshell
-SQL shell: a (better) replacement for DB shell(s).
+`sqlshell` a (better) replacement of database (DB) shell(s)
 
 ### Introduction
-Each database has its own DB CLI tool, e.g. `sqlite3` or `sqlplus`, and some are
-better or worse than others. For instance, the `sqlplus` does not support
+Each database has its own Command Line (CLI) tool, e.g. `sqlite3` for SQLite
+database, `sqlplus` for ORACLE one. All of these tools have
+their own syntax and behavior and sometime lack of certain features
+found in other tools. For instance, the `sqlplus` does not support
 proper cursor movement (it is not based on ncurses), and therefore lack of
 useful features such as history, in-place query editing, etc.
 
-This code provides uniform shell for different database, and therefore
-it work identically regardless of underlying DB. The DB access is provided
+The `sqlshell` provides uniform shell for different database, and therefore
+it works identically regardless of underlying DB. The DB access is provided
 via Go [`sql` module](http://go-database-sql.org/) and can support any
-database via its their drivers.
+database throught native database libraries.
+
+### Build
+To build `sqlshell` you'll need specific DB libraries, e.g.
+- for SQLite you do not need anything to do
+- for ORACLE please obtain ORACLE SDK and adjust accordingly oci8.pc file
+- for MySQL ...
+- for Postgress ...
+After that, just run `make` to make a build on your architecture
+or use `make build_linux`, etc. for other platforms
 
 ### Usage
-The *sqlshell* provides the following set of features:
-- full access to UNIX commands
+The `sqlshell` provides the following set of features:
 - full access to SQL commands
   - different output formatting options, e.g. columns, rows or json views
 - persiste history
 - uniform access to different database backend
   - currently sqlshell supports access to SQLite, MySQL, ORACLE, Postgres
     databases
+- full access to UNIX commands, yes you can execute your favorite UNIX
+command, e.g. ls or pwd or even vim :)
 
-Here is a preview of sqlshell session:
+Here is a preview of `sqlshell` session:
 
 ```
 # start from any UNIX shell
