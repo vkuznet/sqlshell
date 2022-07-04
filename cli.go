@@ -187,8 +187,8 @@ func showUsage() {
 }
 
 // helper function to parse DB statement
-func parseDBStatement(cmd string) (string, []any) {
-	var args []any
+func parseDBStatement(cmd string) (string, []interface{}) {
+	var args []interface{}
 	return cmd, args
 }
 

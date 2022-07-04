@@ -35,7 +35,7 @@ var DB *sql.DB
 var DBTYPE string
 
 // Record represents DBS record
-type Record map[string]any
+type Record map[string]interface{}
 
 // DBSQL represents DBS SQL record
 var DBSQL Record
@@ -87,7 +87,7 @@ func cleanStatement(stm string) string {
 // ideas are taken from
 // http://stackoverflow.com/questions/17845619/how-to-call-the-scan-variadic-function-in-golang-using-reflection
 //gocyclo:ignore
-func execute(stm string, args ...any) error {
+func execute(stm string, args ...interface{}) error {
 	stm = cleanStatement(stm)
 
 	// execute transaction
