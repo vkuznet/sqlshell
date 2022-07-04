@@ -168,7 +168,7 @@ func execute(stm string, args ...interface{}) error {
 func printRecord(rec Record, rowCount int) {
 	var maxKeyLength int
 	var keys []string
-	for key, _ := range rec {
+	for key := range rec {
 		if len(key) > maxKeyLength {
 			maxKeyLength = len(key)
 		}
