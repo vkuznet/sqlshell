@@ -14,9 +14,13 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
+	"sort"
 	"strings"
+	"text/tabwriter"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
@@ -151,7 +155,7 @@ func execute(stm string, args ...any) error {
 				rec[cols[i]] = val
 			}
 		}
-		printRecord(rec)
+		printRecord(rec, rowCount)
 		rowCount += 1
 	}
 	if err = rows.Err(); err != nil {
@@ -161,7 +165,7 @@ func execute(stm string, args ...any) error {
 }
 
 // helper function to print DB record
-func printRecord(rec Record) {
+func printRecord(rec Record, rowCount int) {
 	var maxKeyLength int
 	var keys []string
 	for key, _ := range rec {
@@ -170,6 +174,7 @@ func printRecord(rec Record) {
 		}
 		keys = append(keys, key)
 	}
+	sort.Strings(keys)
 	fmt.Println("")
 	if DBFORMAT == "" || DBFORMAT == "cols" {
 		for _, key := range keys {
@@ -181,11 +186,30 @@ func printRecord(rec Record) {
 			fmt.Printf("%s%s: %v\n", key, pad, val)
 		}
 		return
+	} else if DBFORMAT == "json" {
+		data, err := json.Marshal(rec)
+		if err == nil {
+			fmt.Println(string(data))
+		}
+		return
 	}
+	// initialize tabwriter
+	w := new(tabwriter.Writer)
+	// minwidth, tabwidth, padding, padchar, flags
+	w.Init(os.Stdout, 4, 16, 0, '\t', 0)
+	defer w.Flush()
+
+	// print column names if necessary
+	if rowCount == 0 {
+		fmt.Fprintf(w, strings.Join(keys, "\t"))
+		fmt.Fprintf(w, "\n")
+	}
+
+	// print row values
 	var vals []string
 	for _, key := range keys {
 		val, _ := rec[key]
 		vals = append(vals, fmt.Sprintf("%v", val))
 	}
-	fmt.Println(strings.Join(vals, "\t"))
+	fmt.Fprintf(w, strings.Join(vals, "\t"))
 }
