@@ -25,9 +25,10 @@ func info() string {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("usage: sqlshell <dbtype://dburi>")
-		fmt.Println("supported dbtypes: sqlite, mysql, postgres, oracle")
-		os.Exit(1)
+		fmt.Println("Usage  : sqlshell <dbtype://dburi>")
+		fmt.Println("DBTypes: sqlite, mysql, postgres, oracle")
+		fmt.Println("Example: sqlshell sqlite:///path/file.db")
+		return
 	}
 	// initialize our DB connection
 	dburi := strings.Join(os.Args[1:], "")
