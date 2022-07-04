@@ -189,6 +189,7 @@ func showUsage() {
 // helper function to parse DB statement
 func parseDBStatement(cmd string) (string, []interface{}) {
 	var args []interface{}
+	cmd = strings.Replace(cmd, ";", "", -1)
 	return cmd, args
 }
 
