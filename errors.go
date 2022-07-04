@@ -61,6 +61,8 @@ func (e *DBError) Error() string {
 		e.Code, e.Explain(), e.Function, e.Message, sep, e.Reason)
 }
 
+// Explain provides explanation of DB errors
+//gocyclo:ignore
 func (e *DBError) Explain() string {
 	switch e.Code {
 	case GenericErrorCode:

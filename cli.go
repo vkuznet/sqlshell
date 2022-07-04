@@ -42,6 +42,7 @@ var TabWidth int = 16
 var Padding int = 0
 
 // helper function to handle keyboard input
+//gocyclo:ignore
 func keysHandler(ch chan<- string) {
 	var pos, hpos int
 	var cmd []string
