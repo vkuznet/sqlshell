@@ -26,8 +26,8 @@ jobs:
       run: |
         sed -i -e "s,_ \"github.com/mattn/go-oci8\",,g" db.go
         sed -i -e "s,_ \"gopkg.in/rana/ora.v4\",,g" db.go
-	    sed -i -e "s,_ \"github.com/go-sql-driver/mysql\",,g" db.go
-	    sed -i -e "s,_ \"github.com/lib/pq\",,g" db.go
+        sed -i -e "s,_ \"github.com/go-sql-driver/mysql\",,g" db.go
+        sed -i -e "s,_ \"github.com/lib/pq\",,g" db.go
         make
 
     - name: Create Release
