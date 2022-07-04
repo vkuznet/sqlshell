@@ -179,7 +179,10 @@ func showUsage() {
 	fmt.Println("history  - show history of used commands")
 	fmt.Println("           use !<number> to execute specific command from the history")
 	fmt.Println("dbformat - set output database format")
-	fmt.Println("           supported formats: json,cols,rows or rows:minwidth:tabwidth:padding:padchar")
+	fmt.Println("           supported formats: json,pairs,rows or rows:minwidth:tabwidth:padding:padchar")
+	fmt.Println("           pairs format will show key:value pairs of single DB row (default)")
+	fmt.Println("           rows format will show record values as single DB row")
+	fmt.Println("           json format will show DB record in JSON format")
 	fmt.Println("           example : dbformat=rows:4:16:0")
 }
 
