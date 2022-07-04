@@ -1,5 +1,8 @@
 package main
 
+// history module
+// Copyright (c) 2022 - Valentin Kuznetsov <vkuznet@gmail.com>
+
 import (
 	"bufio"
 	"log"

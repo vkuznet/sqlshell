@@ -1,5 +1,8 @@
 package main
 
+// errors module
+// Copyright (c) 2022 - Valentin Kuznetsov <vkuznet@gmail.com>
+
 import (
 	"errors"
 	"fmt"

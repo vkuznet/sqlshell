@@ -1,7 +1,7 @@
 package main
 
 // sqlshell: a better replacement for DB shell(s)
-// Copyright (c) 2015 - Valentin Kuznetsov <vkuznet@gmail.com>
+// Copyright (c) 2022 - Valentin Kuznetsov <vkuznet@gmail.com>
 //
 
 import (

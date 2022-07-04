@@ -1,7 +1,7 @@
 package main
 
 // sqlshell: a better replacement for DB shell(s)
-// Copyright (c) 2015 - Valentin Kuznetsov <vkuznet@gmail.com>
+// Copyright (c) 2022 - Valentin Kuznetsov <vkuznet@gmail.com>
 //
 // the original idea is based on https://sj14.gitlab.io/post/2018/07-01-go-unix-shell/
 // to fix "for sys error like go:linkname must refer to declared function or variable" do the following
