@@ -30,9 +30,9 @@ func reverse(cmds []string) []string {
 // Read reads content from history file
 func ReadHistory() []string {
 	path := HistoryFile()
-	var lines []string
+	var commands []string
 	if _, err := os.Stat(path); err != nil {
-		return lines
+		return commands
 	}
 	file, err := os.Open(path)
 	if err != nil {
@@ -42,20 +42,28 @@ func ReadHistory() []string {
 	scanner := bufio.NewScanner(file)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
+		commands = append(commands, scanner.Text())
 	}
-	return lines
-	//     return reverse(lines)
+	if len(commands) > HIST_LIMIT {
+		idx := len(commands) - HIST_LIMIT
+		commands = commands[idx:]
+	}
+	return commands
 }
 
 // Flush writes history commands to a file
 func FlushHistory(commands []string) {
-	//     file, err := os.OpenFile(HistoryFile(), os.O_RDWR, 0644)
-	file, err := os.Create(HistoryFile())
+	fname := HistoryFile()
+	file, err := os.OpenFile(fname, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
+	//     file, err := os.Create(HistoryFile())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
+	if len(commands) > HIST_LIMIT {
+		idx := len(commands) - HIST_LIMIT
+		commands = commands[idx:]
+	}
 	for _, cmd := range commands {
 		if cmd == "" {
 			continue
