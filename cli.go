@@ -118,7 +118,6 @@ func keysHandler(ch chan<- string) {
 				cursor.ClearLine()
 				cmd = front
 				cmd = append(cmd, rest...)
-				//                 cmd = cmd[:len(cmd)-1]
 				fmt.Printf(PROMPT + strings.Join(cmd, ""))
 				if len(rest) > 0 {
 					cursor.Left(len(rest))
@@ -140,33 +139,23 @@ func keysHandler(ch chan<- string) {
 			hpos = len(history) - 1
 			cmd = []string{}
 			if command == "history" {
-				fmt.Println("\n" + strings.Join(history, "\n"))
-				ch <- "" // send empty command
-			} else if strings.HasPrefix(command, "dbformat") {
-				arr := strings.Split(command, "=")
-				if len(arr) == 2 {
-					setDBFormat(arr[1])
-					fmt.Println("\nset DB format to", DBFORMAT)
-				} else {
-					fmt.Println("\ndbformat: json,cols,rows or rows:minwidth:tabwidth:padding:padchar")
-					fmt.Println("\nExample : dbformat=rows:4:16:0")
+				fmt.Println()
+				for idx, cmd := range history {
+					fmt.Printf("%d %s\n", idx, cmd)
 				}
 				ch <- "" // send empty command
-			} else if strings.HasPrefix(command, "dbconnect") {
-				arr := strings.Split(command, "=")
-				if len(arr) == 2 {
-					dburi := strings.Trim(arr[1], " ")
-					dbConnect(dburi)
+			} else if strings.HasPrefix(command, "!") {
+				// execute specific command
+				arr := strings.Split(command, "!")
+				if len(arr) > 1 {
+					idxStr := strings.Trim(arr[1], " ")
+					if idx, err := strconv.Atoi(idxStr); err == nil {
+						if idx < len(history) {
+							c := history[idx]
+							ch <- c
+						}
+					}
 				}
-			} else if dbStatement(command) {
-				stm, args := parseDBStatement(command)
-				err := execute(stm, args...)
-				if err != nil {
-					log.Println("db error:", err)
-				}
-				ch <- "" // send empty command
-			} else if len(command) == 0 {
-				// pass
 			} else {
 				if command == "exit" {
 					FlushHistory(history)
@@ -181,6 +170,17 @@ func keysHandler(ch chan<- string) {
 	if err != nil {
 		log.Println("\nkeyboard listener failure, error:", err)
 	}
+}
+
+// helper function show usage
+func showUsage() {
+	fmt.Println("sqlshell commands:")
+	fmt.Println("help     - this message")
+	fmt.Println("history  - show history of used commands")
+	fmt.Println("           use !<number> to execute specific command from the history")
+	fmt.Println("dbformat - set output database format")
+	fmt.Println("           supported formats: json,cols,rows or rows:minwidth:tabwidth:padding:padchar")
+	fmt.Println("           example : dbformat=rows:4:16:0")
 }
 
 // helper function to parse DB statement
@@ -268,12 +268,56 @@ func connect(uri string) error {
 }
 
 // helper function to execute given input command
-func execInput(input string) error {
+func execInput(command string) error {
+
+	// check if empty command
+	if len(command) == 0 {
+		return nil
+	}
+
+	// check if we got SQL command
+	if dbStatement(command) {
+		stm, args := parseDBStatement(command)
+		err := execute(stm, args...)
+		if err != nil {
+			log.Println("db error:", err)
+		}
+		return nil
+	}
+
+	// check help command
+	if strings.HasPrefix(command, "help") {
+		showUsage()
+		return nil
+	}
+
+	// check dbformat command
+	if strings.HasPrefix(command, "dbformat") {
+		arr := strings.Split(command, "=")
+		if len(arr) == 2 {
+			setDBFormat(arr[1])
+			fmt.Println("set DB format to", DBFORMAT)
+		} else {
+			fmt.Println("dbformat: json,cols,rows or rows:minwidth:tabwidth:padding:padchar")
+			fmt.Println("Example : dbformat=rows:4:16:0")
+		}
+		return nil
+	}
+
+	// check dbconnect command
+	if strings.HasPrefix(command, "dbconnect") {
+		arr := strings.Split(command, "=")
+		if len(arr) == 2 {
+			dburi := strings.Trim(arr[1], " ")
+			dbConnect(dburi)
+		}
+		return nil
+	}
 	// Remove the newline character.
-	input = strings.TrimSuffix(input, "\n")
+	command = strings.TrimSuffix(command, "\n")
 
 	// Split the input separate the command and the arguments.
-	args := strings.Split(input, " ")
+	args := strings.Split(command, " ")
 
 	// Check for built-in commands.
 	switch args[0] {
