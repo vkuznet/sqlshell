@@ -162,7 +162,7 @@ func keysHandler(ch chan<- string) {
 					}
 				}
 			} else {
-				if command == "exit" {
+				if command == "exit" || command == "quit" {
 					FlushHistory(history)
 				}
 				ch <- command
@@ -183,6 +183,8 @@ func showUsage() {
 	fmt.Println("help      show this message")
 	fmt.Println("history   set or show history of used commands")
 	fmt.Println("!<number> execute specific command from the history")
+	fmt.Println("quit      exit the sqlshell")
+	fmt.Println("exit      exit the sqlshell")
 	fmt.Println("set <cmd> perform set command")
 	fmt.Println("          supported commands: format, connect, index, pager, limit, history")
 	fmt.Println("set format=...    set output database format")
@@ -330,7 +332,7 @@ func execInput(command string) error {
 		}
 		// Change the directory and return the error.
 		return os.Chdir(args[1])
-	case "exit":
+	case "exit", "quit":
 		os.Exit(0)
 	}
 
