@@ -28,10 +28,10 @@ func main() {
 		fmt.Println("Usage   : sqlshell <dbtype://dburi>")
 		fmt.Println("DBTypes : sqlite, mysql, postgres, oracle")
 		fmt.Println("Examples:")
-		fmt.println("          connect to SQLiteDB : sqlshell sqlite:///path/file.db")
-		fmt.println("          connect to ORACLE   : sqlshell oracle://dbuser:dbpassword@db")
-		fmt.println("          connect to MySQL    : sqlshell mysql://dbuser:dbpassword@host:port")
-		fmt.println("          connect to Postgress: sqlshell postgress://dbuser:dbpassword@host:port")
+		fmt.Println("          connect to SQLiteDB : sqlshell sqlite:///path/file.db")
+		fmt.Println("          connect to ORACLE   : sqlshell oracle://dbuser:dbpassword@db")
+		fmt.Println("          connect to MySQL    : sqlshell mysql://dbuser:dbpassword@host:port")
+		fmt.Println("          connect to Postgress: sqlshell postgress://dbuser:dbpassword@host:port")
 		return
 	}
 	// initialize our DB connection
