@@ -16,6 +16,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"sort"
@@ -31,8 +32,17 @@ import (
 // DB represents sql DB pointer
 var DB *sql.DB
 
+// DB transaction object
+var TX *sql.Tx
+
 // DBTYPE represents DBS DB type, e.g. ORACLE or SQLite
 var DBTYPE string
+
+// IDX represents index value to use when printing DB records
+var IDX = 0
+
+// LIMIT represents limit value to use when printing DB records
+var LIMIT = 0
 
 // Record represents DBS record
 type Record map[string]interface{}
@@ -83,6 +93,45 @@ func cleanStatement(stm string) string {
 	return stm
 }
 
+// helper function to execute different SQL statements
+func executeStatement(stm string, args ...interface{}) error {
+	var err error
+	if strings.HasPrefix(strings.ToLower(stm), "begin") {
+		TX, err = DB.Begin()
+		if err != nil {
+			log.Println("unable to start transaction", err)
+		}
+	} else if strings.HasPrefix(strings.ToLower(stm), "commit") {
+		if TX != nil {
+			err = TX.Commit()
+			if err != nil {
+				log.Println("unable to commit transaction", err)
+			}
+		}
+	} else if strings.HasPrefix(strings.ToLower(stm), "rollback") {
+		if TX != nil {
+			err = TX.Rollback()
+			if err != nil {
+				log.Println("unable to rollback transaction", err)
+			}
+		}
+	} else if strings.HasPrefix(strings.ToLower(stm), "insert") ||
+		strings.HasPrefix(strings.ToLower(stm), "delete") {
+		if TX != nil {
+			_, err = TX.Exec(stm, args...)
+			if err != nil {
+				log.Println("unable to execute statement", stm, "error", err)
+			}
+		}
+	} else {
+		err = execute(stm, args...)
+		if err != nil {
+			log.Println("db error:", err)
+		}
+	}
+	return err
+}
+
 // generic API to execute given statement
 // ideas are taken from
 // http://stackoverflow.com/questions/17845619/how-to-call-the-scan-variadic-function-in-golang-using-reflection
@@ -104,6 +153,11 @@ func execute(stm string, args ...interface{}) error {
 		return Error(err, QueryErrorCode, "", "execute")
 	}
 	defer rows.Close()
+
+	// initialize tabwriter
+	w := new(tabwriter.Writer)
+	w.Init(os.Stdout, MinWidth, TabWidth, Padding, ' ', 0)
+	defer w.Flush()
 
 	// extract columns from Rows object and create values & valuesPtrs to retrieve results
 	columns, _ := rows.Columns()
@@ -155,8 +209,14 @@ func execute(stm string, args ...interface{}) error {
 				rec[cols[i]] = val
 			}
 		}
-		printRecord(rec, rowCount)
+		printRecord(w, rec, rowCount)
 		rowCount += 1
+	}
+	// add additional print at the end
+	if DBFORMAT == "rows" {
+		fmt.Fprintf(w, "\n")
+	} else {
+		fmt.Println()
 	}
 	if err = rows.Err(); err != nil {
 		return Error(err, RowsScanErrorCode, "", "execute")
@@ -165,7 +225,11 @@ func execute(stm string, args ...interface{}) error {
 }
 
 // helper function to print DB record
-func printRecord(rec Record, rowCount int) {
+func printRecord(w io.Writer, rec Record, rowCount int) {
+	// do not print if we are out of range
+	if rowCount < IDX || rowCount > LIMIT {
+		return
+	}
 	var maxKeyLength int
 	var keys []string
 	for key := range rec {
@@ -193,10 +257,6 @@ func printRecord(rec Record, rowCount int) {
 		}
 		return
 	}
-	// initialize tabwriter
-	w := new(tabwriter.Writer)
-	w.Init(os.Stdout, MinWidth, TabWidth, Padding, '\t', 0)
-	defer w.Flush()
 
 	// print column names if necessary
 	if rowCount == 0 {
