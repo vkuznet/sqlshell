@@ -39,10 +39,12 @@ var TX *sql.Tx
 var DBTYPE string
 
 // INDEX represents index value to use when printing DB records
+// by default we use first record
 var INDEX = 0
 
 // LIMIT represents limit value to use when printing DB records
-var LIMIT = 0
+// by default there is no limit
+var LIMIT = -1
 
 // Record represents DBS record
 type Record map[string]interface{}
