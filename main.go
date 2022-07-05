@@ -57,4 +57,5 @@ func main() {
 
 	// shutdown our command handler
 	done <- true
+	reset()
 }

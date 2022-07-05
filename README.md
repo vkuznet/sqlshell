@@ -32,7 +32,7 @@ or use `make build_linux`, etc. for other platforms
 The `sqlshell` provides the following set of features:
 - full access to SQL commands
   - different output formatting options, e.g. columns, rows or json views
-- persiste history
+- persistent history
 - uniform access to different database backend
   - currently sqlshell supports access to SQLite, MySQL, ORACLE, Postgres
     databases
