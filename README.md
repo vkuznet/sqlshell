@@ -46,15 +46,15 @@ Here is a preview of `sqlshell` session:
 # sqlshell sqlite:///tmp/file.db
 
 # now we are in sqlshell
->
+sqlsh >
 
 # any unix command is supported, e.g.
-> ls
+sqlsh > ls
 file1 file2
 
 # use SQL command, by default it will use pairs format which shows
 # given DB record as key:value pair printed separately
-> select * from table;
+sqlsh > select * from table;
 
 id   : 1
 name : value1
@@ -64,26 +64,26 @@ name : value2
 ...
 
 # change database format
-> dbformat
-dbformat: json,pairs,rows or rows:minwidth:tabwidth:padding:padchar
+sqlsh > set format
+format  : json,pairs,rows or rows:minwidth:tabwidth:padding:padchar
 Example : dbformat=rows:4:16:0
 
 # setup db output as rows data-format
-> dbformat=rows
+sqlsh > set format=rows
 
 # execute query
-> select * from table;
+sqlsh > select * from table;
 1 value1
 2 value2
 
 # show history
-> history
+sqlsh > history
 ls
 pwd
 select * from table;
 
 # execute certain command from the history
-> !3
+sqlsh > !3
 
 id   : 1
 name : value1
@@ -92,3 +92,15 @@ id   : 2
 name : value2
 
 ```
+The `sqlshell` also adds useful `index,limit` commands to manage output from
+database. Since different DBs use different methods (in MySQL you need to use
+`LIMIT X, Y` while in ORALCE you need to wrap your SQL statement into another
+one to use `ROWNU`) we provide this function to manage this use-cases. For
+example, to limit your DB results to a specific range just do the following:
+```
+sqlsh > set index=10
+sqlsh > set limit=100
+sqlsh > select * from table;
+```
+and it will show only results within `index-limit` range (in this case
+between 10 and 100).

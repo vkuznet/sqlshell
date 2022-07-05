@@ -27,7 +27,7 @@ import (
 )
 
 // PROMPT represents shell prompt
-var PROMPT = "> "
+var PROMPT = "sqlsh > "
 
 // HIST_LIMIT defines number of line we write to history file
 var HIST_LIMIT = 10
@@ -252,6 +252,7 @@ func dbStatement(cmd string) bool {
 		strings.HasPrefix(cmd, "begin") ||
 		strings.HasPrefix(cmd, "rollback") ||
 		strings.HasPrefix(cmd, "commit") ||
+		strings.HasPrefix(cmd, "create") ||
 		strings.HasPrefix(cmd, "delete") {
 		return true
 	}
@@ -298,11 +299,7 @@ func execInput(command string) error {
 	// check if we got SQL command
 	if dbStatement(command) {
 		stm, args := parseDBStatement(command)
-		err := execute(stm, args...)
-		if err != nil {
-			log.Println("db error:", err)
-		}
-		return nil
+		return executeStatement(stm, args...)
 	}
 
 	// check help command
@@ -403,7 +400,11 @@ func setCommand(input string) {
 	if strings.HasPrefix(command, "index") {
 		arr := strings.Split(command, "=")
 		if len(arr) == 2 {
-			fmt.Println("Not implemented yet")
+			s := strings.Trim(arr[1], " ")
+			v, err := strconv.Atoi(s)
+			if err == nil {
+				INDEX = v
+			}
 		} else {
 			fmt.Println("set index=N, where N is first record from DB output to print")
 		}
@@ -414,7 +415,11 @@ func setCommand(input string) {
 	if strings.HasPrefix(command, "limit") {
 		arr := strings.Split(command, "=")
 		if len(arr) == 2 {
-			fmt.Println("Not implemented yet")
+			s := strings.Trim(arr[1], " ")
+			v, err := strconv.Atoi(s)
+			if err == nil {
+				LIMIT = v
+			}
 		} else {
 			fmt.Println("set limit=N, where N is last record from DB output to print")
 		}

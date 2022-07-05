@@ -38,8 +38,8 @@ var TX *sql.Tx
 // DBTYPE represents DBS DB type, e.g. ORACLE or SQLite
 var DBTYPE string
 
-// IDX represents index value to use when printing DB records
-var IDX = 0
+// INDEX represents index value to use when printing DB records
+var INDEX = 0
 
 // LIMIT represents limit value to use when printing DB records
 var LIMIT = 0
@@ -227,7 +227,7 @@ func execute(stm string, args ...interface{}) error {
 // helper function to print DB record
 func printRecord(w io.Writer, rec Record, rowCount int) {
 	// do not print if we are out of range
-	if rowCount < IDX || rowCount > LIMIT {
+	if rowCount < INDEX || rowCount > LIMIT {
 		return
 	}
 	var maxKeyLength int
