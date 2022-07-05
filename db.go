@@ -272,5 +272,5 @@ func printRecord(w io.Writer, rec Record, rowCount int) {
 		val, _ := rec[key]
 		vals = append(vals, fmt.Sprintf("%v", val))
 	}
-	fmt.Fprintf(w, strings.Join(vals, "\t"))
+	fmt.Fprintf(w, strings.Join(vals, "\t")+"\n")
 }
