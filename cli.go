@@ -447,4 +447,7 @@ func reset() {
 	cmd := exec.Command("reset")
 	cmd.Stdout = os.Stdout
 	cmd.Run()
+	cmd = exec.Command("stty sane")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 }
