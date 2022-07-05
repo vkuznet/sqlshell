@@ -32,8 +32,9 @@ var PROMPT = "sqlsh > "
 // HIST_LIMIT defines number of line we write to history file
 var HIST_LIMIT = 10
 
-// DBFORMAT defines how to print DB records, e.g. columns or rows
-var DBFORMAT string
+// DBFORMAT defines how to print DB records, e.g. pairs or rows or json
+// default is key:value pairs
+var DBFORMAT string = "pairs"
 
 // MinWidth used by tabwriter
 var MinWidth int = 4

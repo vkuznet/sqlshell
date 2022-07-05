@@ -241,8 +241,8 @@ func printRecord(w io.Writer, rec Record, rowCount int) {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
-	fmt.Println("")
-	if DBFORMAT == "" || DBFORMAT == "cols" {
+	if DBFORMAT == "pairs" {
+		fmt.Println("")
 		for _, key := range keys {
 			val, _ := rec[key]
 			var pad string
