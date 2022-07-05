@@ -40,10 +40,10 @@ var DBFORMAT string = "pairs"
 var MinWidth int = 4
 
 // TabWidth used by tabwriter
-var TabWidth int = 16
+var TabWidth int = 4
 
 // Padding used by tabwriter
-var Padding int = 0
+var Padding int = 1
 
 // helper function to handle keyboard input
 //gocyclo:ignore
