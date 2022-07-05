@@ -168,6 +168,9 @@ func execute(stm string, args ...interface{}) error {
 	values := make([]interface{}, count)
 	valuePtrs := make([]interface{}, count)
 	rowCount := 0
+	if DBFORMAT == "rows" {
+		fmt.Println("")
+	}
 	for rows.Next() {
 		if rowCount == 0 {
 			// initialize value pointers
