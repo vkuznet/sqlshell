@@ -229,7 +229,7 @@ func execute(stm string, args ...interface{}) error {
 // helper function to print DB record
 func printRecord(w io.Writer, rec Record, rowCount int) {
 	// do not print if we are out of range
-	if rowCount < INDEX || rowCount > LIMIT {
+	if rowCount < INDEX || (LIMIT > 0 && rowCount > LIMIT) {
 		return
 	}
 	var maxKeyLength int
