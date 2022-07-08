@@ -24,10 +24,14 @@ import (
 	"atomicgo.dev/cursor"
 	"atomicgo.dev/keyboard"
 	"atomicgo.dev/keyboard/keys"
+	"github.com/gookit/color"
 )
 
 // PROMPT represents shell prompt
 var PROMPT = "sqlsh > "
+
+// COLOR set color output
+var COLOR bool
 
 // HIST_LIMIT defines number of line we write to history file
 var HIST_LIMIT = 100
@@ -56,7 +60,11 @@ func keysHandler(ch chan<- string) {
 	}
 
 	// start detecting user input command
-	fmt.Printf(PROMPT)
+	if COLOR {
+		color.Info.Printf(PROMPT)
+	} else {
+		fmt.Printf(PROMPT)
+	}
 	err := keyboard.Listen(func(key keys.Key) (stop bool, err error) {
 
 		switch key.Code {
@@ -71,7 +79,11 @@ func keysHandler(ch chan<- string) {
 			}
 			pos += 1
 			cursor.StartOfLine()
-			fmt.Printf(PROMPT + strings.Join(cmd, ""))
+			if COLOR {
+				fmt.Printf(color.Info.Sprintf(PROMPT) + strings.Join(cmd, ""))
+			} else {
+				fmt.Printf(PROMPT + strings.Join(cmd, ""))
+			}
 			if insert {
 				cursor.Left(len(cmd) - pos)
 			}
@@ -93,7 +105,11 @@ func keysHandler(ch chan<- string) {
 				cursor.StartOfLine()
 				cursor.ClearLine()
 				cmd = strings.Split(history[hpos], "")
-				fmt.Printf(PROMPT + strings.Join(cmd, ""))
+				if COLOR {
+					fmt.Printf(color.Info.Sprintf(PROMPT) + strings.Join(cmd, ""))
+				} else {
+					fmt.Printf(PROMPT + strings.Join(cmd, ""))
+				}
 				pos = len(cmd)
 			}
 		case keys.Down:
@@ -104,7 +120,11 @@ func keysHandler(ch chan<- string) {
 				cursor.StartOfLine()
 				cursor.ClearLine()
 				cmd = strings.Split(history[hpos], "")
-				fmt.Printf(PROMPT + strings.Join(cmd, ""))
+				if COLOR {
+					fmt.Printf(color.Info.Sprintf(PROMPT) + strings.Join(cmd, ""))
+				} else {
+					fmt.Printf(PROMPT + strings.Join(cmd, ""))
+				}
 				pos = len(cmd)
 			}
 		case keys.Space:
@@ -123,7 +143,11 @@ func keysHandler(ch chan<- string) {
 				cursor.ClearLine()
 				cmd = front
 				cmd = append(cmd, rest...)
-				fmt.Printf(PROMPT + strings.Join(cmd, ""))
+				if COLOR {
+					fmt.Printf(color.Info.Sprintf(PROMPT) + strings.Join(cmd, ""))
+				} else {
+					fmt.Printf(PROMPT + strings.Join(cmd, ""))
+				}
 				if len(rest) > 0 {
 					cursor.Left(len(rest))
 				}
@@ -135,7 +159,9 @@ func keysHandler(ch chan<- string) {
 		case keys.CtrlE:
 			cursor.Right(len(cmd) - pos)
 			pos = len(cmd)
-		case keys.CtrlC, keys.CtrlQ, keys.CtrlX, keys.CtrlZ:
+		case keys.CtrlC:
+			// copy to clipboard
+		case keys.CtrlQ:
 			FlushHistory(history)
 			reset()
 			return true, nil
@@ -281,10 +307,15 @@ func cmdHandler(ch <-chan string, done <-chan bool) {
 			if len(input) != 0 {
 				if err := execInput(input); err != nil {
 					//                     log.Fprintln(os.Stderr, err)
-					log.Println("ERROR:", err)
+					//                     log.Println("ERROR:", err)
+					color.Error.Println("ERROR:", err)
 				}
 			}
-			fmt.Printf(PROMPT)
+			if COLOR {
+				color.Info.Printf(PROMPT)
+			} else {
+				fmt.Printf(PROMPT)
+			}
 		default:
 			time.Sleep(time.Duration(10) * time.Millisecond) // wait for response
 		}
@@ -444,6 +475,12 @@ func setCommand(input string) {
 		} else {
 			fmt.Println("set pager=N, where N is number of records to dump from DB output")
 		}
+		return
+	}
+
+	// color command
+	if strings.HasPrefix(command, "color") {
+		COLOR = true
 		return
 	}
 }
