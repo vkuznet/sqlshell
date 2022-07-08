@@ -444,10 +444,8 @@ func setCommand(input string) {
 // reset terminal
 // example https://stackoverflow.com/questions/22891644/how-can-i-clear-the-terminal-screen-in-go
 func reset() {
-	cmd := exec.Command("reset")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
-	cmd = exec.Command("stty sane")
-	cmd.Stdout = os.Stdout
-	cmd.Run()
+	os.Stdout = nil
+	os.Stderr = nil
+	cursor.ClearLine()
+	cursor.Show()
 }
