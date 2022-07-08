@@ -15,6 +15,7 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -96,25 +97,30 @@ func cleanStatement(stm string) string {
 }
 
 // helper function to execute different SQL statements
-func executeStatement(stm string, args ...interface{}) error {
+func executeSQL(stm string, args ...interface{}) error {
 	var err error
 	if strings.HasPrefix(strings.ToLower(stm), "begin") {
 		TX, err = DB.Begin()
 		if err != nil {
-			log.Println("unable to start transaction", err)
+			log.Println(err)
+			return errors.New("unable to start transaction")
 		}
 	} else if strings.HasPrefix(strings.ToLower(stm), "commit") {
 		if TX != nil {
 			err = TX.Commit()
 			if err != nil {
-				log.Println("unable to commit transaction", err)
+				log.Println(err)
+				return errors.New("unable to commit transaction")
 			}
+		} else {
+			return errors.New("Transaction was not started yet")
 		}
 	} else if strings.HasPrefix(strings.ToLower(stm), "rollback") {
 		if TX != nil {
 			err = TX.Rollback()
 			if err != nil {
-				log.Println("unable to rollback transaction", err)
+				log.Println(err)
+				return errors.New("unable to rollback transaction")
 			}
 		}
 	} else if strings.HasPrefix(strings.ToLower(stm), "insert") ||
@@ -122,13 +128,15 @@ func executeStatement(stm string, args ...interface{}) error {
 		if TX != nil {
 			_, err = TX.Exec(stm, args...)
 			if err != nil {
-				log.Println("unable to execute statement", stm, "error", err)
+				log.Println(stm, "error", err)
+				return errors.New("unable to execute statement")
 			}
 		}
 	} else {
 		err = execute(stm, args...)
 		if err != nil {
 			log.Println("db error:", err)
+			return err
 		}
 	}
 	return err

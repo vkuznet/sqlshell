@@ -30,7 +30,7 @@ import (
 var PROMPT = "sqlsh > "
 
 // HIST_LIMIT defines number of line we write to history file
-var HIST_LIMIT = 10
+var HIST_LIMIT = 100
 
 // DBFORMAT defines how to print DB records, e.g. pairs or rows or json
 // default is key:value pairs
@@ -150,9 +150,6 @@ func keysHandler(ch chan<- string) {
 					fmt.Printf("%d %s\n", idx, cmd)
 				}
 				ch <- "" // send empty command
-			} else if command == "exit" || command == "quit" {
-				fmt.Println()
-				return true, nil
 			} else if strings.HasPrefix(command, "!") {
 				// execute specific command
 				arr := strings.Split(command, "!")
@@ -168,6 +165,8 @@ func keysHandler(ch chan<- string) {
 			} else {
 				if command == "exit" || command == "quit" {
 					FlushHistory(history)
+					fmt.Println()
+					return true, nil
 				}
 				ch <- command
 			}
@@ -251,7 +250,7 @@ func setDBFormat(format string) {
 }
 
 // helper function to match DB statement
-func dbStatement(cmd string) bool {
+func sqlCommand(cmd string) bool {
 	cmd = strings.ToLower(cmd)
 	if strings.HasPrefix(cmd, "select") ||
 		strings.HasPrefix(cmd, "insert") ||
@@ -281,7 +280,8 @@ func cmdHandler(ch <-chan string, done <-chan bool) {
 			// Handle the execution of the input.
 			if len(input) != 0 {
 				if err := execInput(input); err != nil {
-					fmt.Fprintln(os.Stderr, err)
+					//                     log.Fprintln(os.Stderr, err)
+					log.Println("ERROR:", err)
 				}
 			}
 			fmt.Printf(PROMPT)
@@ -306,9 +306,9 @@ func execInput(command string) error {
 	}
 
 	// check if we got SQL command
-	if dbStatement(command) {
+	if sqlCommand(command) {
 		stm, args := parseDBStatement(command)
-		return executeStatement(stm, args...)
+		return executeSQL(stm, args...)
 	}
 
 	// check help command
@@ -448,8 +448,7 @@ func setCommand(input string) {
 	}
 }
 
-// reset terminal
-// example https://stackoverflow.com/questions/22891644/how-can-i-clear-the-terminal-screen-in-go
+// reset stdout/stderr and cursor terminal
 func reset() {
 	os.Stdout = nil
 	os.Stderr = nil
