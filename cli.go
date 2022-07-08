@@ -137,6 +137,7 @@ func keysHandler(ch chan<- string) {
 			pos = len(cmd)
 		case keys.CtrlC, keys.CtrlQ, keys.CtrlX, keys.CtrlZ:
 			FlushHistory(history)
+			reset()
 			return true, nil
 		case keys.Enter:
 			command := strings.Join(cmd, "")
@@ -149,6 +150,9 @@ func keysHandler(ch chan<- string) {
 					fmt.Printf("%d %s\n", idx, cmd)
 				}
 				ch <- "" // send empty command
+			} else if command == "exit" || command == "quit" {
+				fmt.Println()
+				return true, nil
 			} else if strings.HasPrefix(command, "!") {
 				// execute specific command
 				arr := strings.Split(command, "!")
@@ -262,6 +266,8 @@ func dbStatement(cmd string) bool {
 	return false
 }
 
+var ErrExit = errors.New("exit")
+
 // helper function to handle commands
 func cmdHandler(ch <-chan string, done <-chan bool) {
 	for {
@@ -333,7 +339,8 @@ func execInput(command string) error {
 		// Change the directory and return the error.
 		return os.Chdir(args[1])
 	case "exit", "quit":
-		os.Exit(0)
+		reset()
+		return ErrExit
 	}
 
 	// Prepare the command to execute.

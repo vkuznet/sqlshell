@@ -34,6 +34,7 @@ func main() {
 		fmt.Println("          connect to Postgress: sqlshell postgress://dbuser:dbpassword@host:port")
 		return
 	}
+
 	// initialize our DB connection
 	dburi := strings.Join(os.Args[1:], "")
 	db, dberr := dbInit(dburi)
@@ -55,7 +56,8 @@ func main() {
 	go cmdHandler(ch, done)
 	keysHandler(ch)
 
+	//     reset()
 	// shutdown our command handler
 	done <- true
-	reset()
+
 }
