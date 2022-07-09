@@ -25,6 +25,7 @@ import (
 	"text/tabwriter"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gookit/color"
 	_ "github.com/lib/pq"
 	_ "github.com/mattn/go-oci8"
 	_ "github.com/mattn/go-sqlite3"
@@ -260,7 +261,11 @@ func printRecord(w io.Writer, rec Record, rowCount int) {
 			for i := 0; i < maxKeyLength-len(key); i++ {
 				pad += " "
 			}
-			fmt.Printf("%s%s: %v\n", key, pad, val)
+			if COLOR {
+				fmt.Printf("%s%s: %v\n", color.Notice.Sprintf(key), pad, val)
+			} else {
+				fmt.Printf("%s%s: %v\n", key, pad, val)
+			}
 		}
 		return
 	} else if DBFORMAT == "json" {
