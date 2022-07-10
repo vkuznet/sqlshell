@@ -283,6 +283,7 @@ func sqlCommand(cmd string) bool {
 		strings.HasPrefix(cmd, "update") ||
 		strings.HasPrefix(cmd, "begin") ||
 		strings.HasPrefix(cmd, "rollback") ||
+		strings.HasPrefix(cmd, "alter") ||
 		strings.HasPrefix(cmd, "commit") ||
 		strings.HasPrefix(cmd, "create") ||
 		strings.HasPrefix(cmd, "delete") {
@@ -356,6 +357,13 @@ func execInput(command string) error {
 
 	// Remove the newline character.
 	command = strings.TrimSuffix(command, "\n")
+
+	// for ls command replace tilde with home area
+	if strings.HasPrefix(command, "ls") {
+		if strings.Contains(command, "~") {
+			command = strings.Replace(command, "~", os.Getenv("HOME"), -1)
+		}
+	}
 
 	// Split the input separate the command and the arguments.
 	args := strings.Split(command, " ")
