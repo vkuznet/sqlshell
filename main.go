@@ -5,6 +5,7 @@ package main
 //
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -23,20 +24,41 @@ func info() string {
 	return fmt.Sprintf("dbs2go git=%s go=%s date=%s", gitVersion, goVersion, tstamp)
 }
 
+// helper function to provide usage help string to stdout
+func usage() {
+	fmt.Println("Usage   : sqlshell <dbtype://dburi> or <dbConfigFile>")
+	fmt.Println("DBTypes : sqlite, mysql, postgres, oracle")
+	fmt.Println("Examples:")
+	fmt.Println("          connect to SQLiteDB : sqlshell sqlite:///path/file.db")
+	fmt.Println("          connect to ORACLE   : sqlshell oracle://user:password@dbname")
+	fmt.Println("          connect to MySQL    : sqlshell mysql://user:password@/dbname")
+	fmt.Println("          connect to Postgres : sqlshell postgres://user:password@dbname:host:port")
+	fmt.Println("db configuration file examples:")
+	fmt.Println("for SQLite  ", sqliteConfig)
+	fmt.Println("for ORACLE  ", oracleConfig)
+	fmt.Println("for MySQL   ", mysqlConfig)
+	fmt.Println("for Postgres", pgConfig)
+}
+
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage   : sqlshell <dbtype://dburi>")
-		fmt.Println("DBTypes : sqlite, mysql, postgres, oracle")
-		fmt.Println("Examples:")
-		fmt.Println("          connect to SQLiteDB : sqlshell sqlite:///path/file.db")
-		fmt.Println("          connect to ORACLE   : sqlshell oracle://dbuser:dbpassword@db")
-		fmt.Println("          connect to MySQL    : sqlshell mysql://dbuser:dbpassword@host:port")
-		fmt.Println("          connect to Postgress: sqlshell postgress://dbuser:dbpassword@host:port")
+		usage()
 		return
 	}
 
 	// initialize our DB connection
-	dburi := strings.Join(os.Args[1:], "")
+	var dburi string
+	arg := strings.Join(os.Args[1:], "")
+	if _, err := os.Stat(dburi); errors.Is(err, os.ErrNotExist) {
+		// we have existing file dburi
+		fmt.Println("### read file", arg)
+		dburi = readConfig(arg)
+		fmt.Println("### dburi", dburi)
+	} else {
+		dburi = arg
+	}
+
+	// initialize access to DB
 	db, dberr := dbInit(dburi)
 	if dberr != nil {
 		log.Fatal(dberr)
