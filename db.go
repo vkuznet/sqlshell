@@ -11,6 +11,10 @@ package main
 //   _ "github.com/go-sql-driver/mysql"
 // SQLite driver:
 //  _ "github.com/mattn/go-sqlite3"
+//
+// For full list of supported databases in Go please refer to
+// https://github.com/golang/go/wiki/SQLDrivers
+// All of them can be added in this package but so far we concentrate on traditional RDBMS
 
 import (
 	"database/sql"
