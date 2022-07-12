@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 // DBConfif represents DB configuration file
@@ -30,7 +31,7 @@ func (c *DBConfig) DBUri() string {
 		// oracle://user:password@dbname
 		s = fmt.Sprintf("oracle://%s/%s@%s", c.User, c.Password, c.DBName)
 	} else if c.DBType == "postgres" {
-		pgUri := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", c.Host, c.Port, c.User, c.Password, c.DBName)
+		pgUri := fmt.Sprintf("host=%s port=%v user=%s password=%s dbname=%s sslmode=disable", c.Host, c.Port, c.User, c.Password, c.DBName)
 		s = fmt.Sprintf("postgres://%s", pgUri)
 	} else {
 		log.Fatal(fmt.Sprintf("unsupported DB type %s", c.DBType))
@@ -62,4 +63,39 @@ func readConfig(dburi string) string {
 		log.Fatal(err)
 	}
 	return config.DBUri()
+}
+
+// helper function to parse DB URI according to specific GoLang DB driver
+func parseDBUri(dbtype, dburi string) string {
+	if dbtype == "sqlite" || dbtype == "sqlite3" {
+		dburi = strings.Replace(dburi, "sqlite://", "", -1)
+		dburi = strings.Replace(dburi, "sqlite3://", "", -1)
+	} else if dbtype == "mysql" {
+		// user:password@tcp(127.0.0.1:3306)/hello
+		return dburi
+	} else if dbtype == "oracle" {
+		// user/password@dbname
+		return dburi
+	} else if dbtype == "postgres" {
+		// user:password@dbname:host:port
+		arr := strings.Split(dburi, "@")
+		if len(arr) != 2 {
+			log.Fatal("wrong dburi, should be in form postgres://user:password@dbname:host:port")
+		}
+		brr := strings.Split(arr[0], ":")
+		if len(brr) != 2 {
+			log.Fatal("wrong dburi, should be in form postgres://user:password@dbname:host:port")
+		}
+		user := brr[0]
+		password := brr[1]
+		brr = strings.Split(arr[1], ":")
+		if len(brr) != 3 {
+			log.Fatal("wrong dburi, should be in form postgres://user:password@dbname:host:port")
+		}
+		dbname := brr[0]
+		host := brr[1]
+		port := brr[2]
+		dburi = fmt.Sprintf("host=%s port=%v user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	}
+	return dburi
 }

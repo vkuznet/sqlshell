@@ -49,13 +49,10 @@ func main() {
 	// initialize our DB connection
 	var dburi string
 	arg := strings.Join(os.Args[1:], "")
-	if _, err := os.Stat(dburi); errors.Is(err, os.ErrNotExist) {
-		// we have existing file dburi
-		fmt.Println("### read file", arg)
-		dburi = readConfig(arg)
-		fmt.Println("### dburi", dburi)
-	} else {
+	if _, err := os.Stat(arg); errors.Is(err, os.ErrNotExist) {
 		dburi = arg
+	} else {
+		dburi = readConfig(arg)
 	}
 
 	// initialize access to DB

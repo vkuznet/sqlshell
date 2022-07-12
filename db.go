@@ -61,8 +61,6 @@ var DBOWNER string
 func dbInit(dburi string) (*sql.DB, error) {
 	if strings.HasPrefix(dburi, "sqlite") {
 		DBTYPE = "sqlite3"
-		dburi = strings.Replace(dburi, "sqlite://", "", -1)
-		dburi = strings.Replace(dburi, "sqlite3://", "", -1)
 	} else if strings.HasPrefix(dburi, "mysql") {
 		DBTYPE = "mysql"
 	} else if strings.HasPrefix(dburi, "postgres") {
@@ -70,7 +68,7 @@ func dbInit(dburi string) (*sql.DB, error) {
 	} else {
 		DBTYPE = "oci8"
 	}
-	db, dberr := sql.Open(DBTYPE, dburi)
+	db, dberr := sql.Open(DBTYPE, parseDBUri(DBTYPE, dburi))
 	if dberr != nil {
 		log.Printf("unable to open %s, error %v", DBTYPE, dburi)
 		return nil, dberr
