@@ -40,10 +40,10 @@ func (c *DBConfig) DBUri() string {
 }
 
 const (
-	sqliteConfig string = `{"db_type": "sqlite", "db_path": "/tmp/file.db"}`
-	oracleConfig string = `{"db_type": "oracle", "user":"bla", "password":"xyz", "dbname":"db"}`
-	mysqlConfig  string = `{"db_type": "mysql", "user":"bla", "password":"xyz", "dbname":"db", "host": "127.0.0.1", "port":3306}`
-	pgConfig     string = `{"db_type": "postgress", "user":"bla", "password":"xyz", "dbname":"db", "host":"127.0.0.1", "port":5432}`
+	sqliteConfig string = `{"type": "sqlite", "path": "/tmp/file.db"}`
+	oracleConfig string = `{"type": "oracle", "user":"bla", "password":"xyz", "name":"db"}`
+	mysqlConfig  string = `{"type": "mysql", "user":"bla", "password":"xyz", "name":"db", "host": "127.0.0.1", "port":3306}`
+	pgConfig     string = `{"type": "postgress", "user":"bla", "password":"xyz", "name":"db", "host":"127.0.0.1", "port":5432}`
 )
 
 // helper function to read DB config file and return dburi
