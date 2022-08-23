@@ -225,6 +225,9 @@ func execute(stm string, args ...interface{}) error {
 				rec[cols[i]] = val
 			}
 		}
+		if LIMIT > 0 && rowCount > LIMIT {
+			break
+		}
 		printRecord(w, rec, rowCount)
 		rowCount += 1
 	}
