@@ -41,7 +41,8 @@ func usage() {
 }
 
 func main() {
-	if len(os.Args) < 2 {
+	if len(os.Args) < 2 ||
+		(len(os.Args) > 1 && strings.Contains(os.Args[1], "help")) {
 		usage()
 		return
 	}
