@@ -50,7 +50,7 @@ var INDEX = 0
 
 // LIMIT represents limit value to use when printing DB records
 // by default there is no limit
-var LIMIT = -1
+var LIMIT = 10
 
 // Record represents DBS record
 type Record map[string]interface{}

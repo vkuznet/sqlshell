@@ -229,7 +229,7 @@ func showUsage() {
 	fmt.Println("set index=N       starting index from DB output")
 	fmt.Println("                  example: set index=5")
 	fmt.Println("set limit=N       limit cut-off from DB output")
-	fmt.Println("                  example: set limit=10")
+	fmt.Println("                  example: set limit=10 (default value)")
 	fmt.Println("set pager=N       shows N records per output")
 	fmt.Println("                  example: set pager=2")
 }
